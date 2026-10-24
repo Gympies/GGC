@@ -1,376 +1,251 @@
 <!DOCTYPE html>
-<html lang="nl" class="h-full bg-black text-white">
+<html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GGC Gymnast Showcase Display Selector</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <title>GGC Display Launcher</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
-    body { font-family: 'Inter', sans-serif; }
-    .accent-red { color: #d92525; }
-    .bg-accent-red { background-color: #d92525; }
-    .border-accent-red { border-color: #d92525; }
-    .hover-bg-accent-red:hover { background-color: #b81c1c; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Minimalistische Header / Status */
+    .status-bar {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 0.75rem;
+      color: #666;
+      font-family: monospace;
+      letter-spacing: 0.5px;
+    }
+
+    .logo-container {
+      margin-bottom: 2.5rem;
+      text-align: center;
+    }
+    .logo-title {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #ffffff;
+    }
+    .logo-title span {
+      color: #d92525;
+    }
+
+    /* Iconen / Knoppen Grid */
+    .button-grid {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      max-width: 900px;
+      width: 90%;
+    }
+
+    .icon-card {
+      background: #111111;
+      border: 2px solid #222222;
+      border-radius: 16px;
+      width: 220px;
+      height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.25s ease-in-out;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .icon-card:hover {
+      border-color: #d92525;
+      transform: translateY(-5px);
+      background: #181818;
+      box-shadow: 0 8px 30px rgba(217, 37, 37, 0.25);
+    }
+
+    .icon-card svg {
+      width: 54px;
+      height: 54px;
+      fill: #ffffff;
+      margin-bottom: 1rem;
+      transition: fill 0.25s ease;
+    }
+
+    .icon-card:hover svg {
+      fill: #d92525;
+    }
+
+    .icon-card span {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #cccccc;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* Fullscreen Frame Overlay */
+    #display-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 9999;
+    }
+
+    #display-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Subtiele Terug-knop (zweeft linksonder, vervaagt automatisch) */
+    .exit-btn {
+      position: fixed;
+      bottom: 15px;
+      left: 15px;
+      z-index: 10000;
+      background: rgba(20, 20, 20, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      opacity: 0.3;
+      transition: opacity 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+    .exit-btn:hover {
+      opacity: 1;
+      background: #d92525;
+      border-color: #d92525;
+    }
   </style>
 </head>
-<body class="h-full flex flex-col bg-black text-gray-100 antialiased selection:bg-red-600 selection:text-white">
+<body>
 
-  <!-- TOP HEADER / BRANDING -->
-  <header class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
-    <div class="flex items-center space-x-4">
-      <div class="flex items-center space-x-2">
-        <span class="text-3xl font-black tracking-wider text-white">GGC</span>
-        <div class="h-6 w-0.5 bg-red-600"></div>
-        <div class="text-xs uppercase tracking-widest text-zinc-400 font-semibold leading-tight">
-          International Artistic Gymnastics<br>
-          <span class="text-zinc-500 text-[10px]">Powered by delaware</span>
-        </div>
-      </div>
+  <div class="status-bar" id="res-display">Resolutie: Laden...</div>
+
+  <div class="logo-container">
+    <div class="logo-title">GGC <span>DISPLAY</span></div>
+  </div>
+
+  <div class="button-grid">
+    <!-- Icon 1: Score per toestel -->
+    <div class="icon-card" onclick="openDisplay('toestel')">
+      <svg viewBox="0 0 24 24">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+      </svg>
+      <span>Score Toestel</span>
     </div>
 
-    <!-- RESOLUTION & MONITOR INFO PANEL -->
-    <div class="flex items-center space-x-3 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-xs">
-      <i data-lucide="monitor" class="w-4 h-4 text-red-500"></i>
-      <div>
-        <span class="text-zinc-400">Scherm / Resolutie:</span>
-        <span id="screenRes" class="font-bold text-white ml-1">Detecteren...</span>
-      </div>
-      <div class="h-3 w-px bg-zinc-700 mx-1"></div>
-      <div>
-        <span class="text-zinc-400">Ratio:</span>
-        <span id="screenRatio" class="font-bold text-zinc-200 ml-1">-</span>
-      </div>
-      <div class="h-3 w-px bg-zinc-700 mx-1"></div>
-      <span id="screenStatus" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-        Actief
-      </span>
+    <!-- Icon 2: Sponsorpresentatie -->
+    <div class="icon-card" onclick="openDisplay('sponsors')">
+      <svg viewBox="0 0 24 24">
+        <path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/>
+      </svg>
+      <span>Sponsors</span>
     </div>
 
-    <!-- ACTIONS -->
-    <div class="flex items-center space-x-2">
-      <button onclick="toggleConfigModal()" class="flex items-center space-x-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 px-3 py-2 rounded-lg text-sm transition">
-        <i data-lucide="settings" class="w-4 h-4 text-zinc-400"></i>
-        <span>URL Beheer</span>
-      </button>
-    </div>
-  </header>
-
-  <!-- MAIN CONTENT AREA -->
-  <main class="flex-1 p-6 max-w-7xl mx-auto w-full flex flex-col space-y-6">
-    
-    <!-- DISPLAY MODE SELECTION CARDS -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      
-      <!-- Option 1: Score per toestel -->
-      <div id="card-toestel" class="group relative bg-zinc-900/60 border border-zinc-800 hover:border-red-600/60 rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:shadow-red-900/10">
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="p-3 bg-red-600/10 border border-red-600/20 rounded-xl text-red-500">
-              <i data-lucide="activity" class="w-6 h-6"></i>
-            </div>
-            <span class="text-xs font-mono text-zinc-500">Optie 01</span>
-          </div>
-          <div>
-            <h3 class="text-xl font-bold text-white group-hover:text-red-500 transition">Score Per Toestel</h3>
-            <p class="text-sm text-zinc-400 mt-1">Live scoreweergave voor specifieke toestellen tijdens de wedstrijd.</p>
-          </div>
-          <div class="pt-2 text-xs font-mono text-zinc-500 truncate" id="label-url-toestel">
-            URL laden...
-          </div>
-        </div>
-        <div class="mt-6 flex items-center space-x-2">
-          <button onclick="loadDisplay('toestel')" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center space-x-2 shadow-lg shadow-red-600/20">
-            <i data-lucide="play" class="w-4 h-4"></i>
-            <span>Activeer Scherm</span>
-          </button>
-          <button onclick="openExternal('toestel')" title="Open in nieuw venster" class="p-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 rounded-xl transition">
-            <i data-lucide="external-link" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Option 2: Sponsorpresentatie -->
-      <div id="card-sponsors" class="group relative bg-zinc-900/60 border border-zinc-800 hover:border-red-600/60 rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:shadow-red-900/10">
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="p-3 bg-red-600/10 border border-red-600/20 rounded-xl text-red-500">
-              <i data-lucide="award" class="w-6 h-6"></i>
-            </div>
-            <span class="text-xs font-mono text-zinc-500">Optie 02</span>
-          </div>
-          <div>
-            <h3 class="text-xl font-bold text-white group-hover:text-red-500 transition">Sponsorpresentatie</h3>
-            <p class="text-sm text-zinc-400 mt-1">Sponsorcarrousel en partner visuals voor pauzes en tussentijden.</p>
-          </div>
-          <div class="pt-2 text-xs font-mono text-zinc-500 truncate" id="label-url-sponsors">
-            URL laden...
-          </div>
-        </div>
-        <div class="mt-6 flex items-center space-x-2">
-          <button onclick="loadDisplay('sponsors')" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center space-x-2 shadow-lg shadow-red-600/20">
-            <i data-lucide="play" class="w-4 h-4"></i>
-            <span>Activeer Scherm</span>
-          </button>
-          <button onclick="openExternal('sponsors')" title="Open in nieuw venster" class="p-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 rounded-xl transition">
-            <i data-lucide="external-link" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Option 3: Algemeen score-overzicht -->
-      <div id="card-algemeen" class="group relative bg-zinc-900/60 border border-zinc-800 hover:border-red-600/60 rounded-2xl p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:shadow-red-900/10">
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="p-3 bg-red-600/10 border border-red-600/20 rounded-xl text-red-500">
-              <i data-lucide="trophy" class="w-6 h-6"></i>
-            </div>
-            <span class="text-xs font-mono text-zinc-500">Optie 03</span>
-          </div>
-          <div>
-            <h3 class="text-xl font-bold text-white group-hover:text-red-500 transition">Algemeen Overzicht</h3>
-            <p class="text-sm text-zinc-400 mt-1">Totaal klassement, tussenstanden en algemene ranking.</p>
-          </div>
-          <div class="pt-2 text-xs font-mono text-zinc-500 truncate" id="label-url-algemeen">
-            URL laden...
-          </div>
-        </div>
-        <div class="mt-6 flex items-center space-x-2">
-          <button onclick="loadDisplay('algemeen')" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center space-x-2 shadow-lg shadow-red-600/20">
-            <i data-lucide="play" class="w-4 h-4"></i>
-            <span>Activeer Scherm</span>
-          </button>
-          <button onclick="openExternal('algemeen')" title="Open in nieuw venster" class="p-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 rounded-xl transition">
-            <i data-lucide="external-link" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- PREVIEW / IFRAME DISPLAY CONTAINER -->
-    <div class="flex-1 min-h-[450px] bg-zinc-950 border border-zinc-800 rounded-2xl overflow-hidden flex flex-col relative shadow-2xl">
-      
-      <!-- CONTROLS BAR -->
-      <div class="bg-zinc-900/90 border-b border-zinc-800 px-4 py-3 flex items-center justify-between text-xs">
-        <div class="flex items-center space-x-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-zinc-300 font-medium">Huidige weergave:</span>
-          <span id="activeDisplayName" class="text-white font-bold">Selecteer een optie</span>
-        </div>
-        <div class="flex items-center space-x-3">
-          <button onclick="reloadIframe()" class="text-zinc-400 hover:text-white flex items-center space-x-1 transition">
-            <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
-            <span>Vernieuwen</span>
-          </button>
-          <button onclick="triggerFullscreen()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-semibold flex items-center space-x-1.5 transition">
-            <i data-lucide="maximize" class="w-3.5 h-3.5"></i>
-            <span>Volledig Scherm (HDMI)</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- IFRAME -->
-      <div class="flex-1 relative w-full h-full bg-black flex items-center justify-center">
-        <div id="placeholder" class="text-center space-y-3 p-6">
-          <div class="inline-flex p-4 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-600">
-            <i data-lucide="tv" class="w-8 h-8"></i>
-          </div>
-          <p class="text-zinc-400 text-sm">Selecteer bovenaan één van de opties om de weergave te starten.</p>
-        </div>
-        <iframe id="displayIframe" class="w-full h-full border-none hidden" allowfullscreen></iframe>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- CONFIG MODAL (URL MANAGER) -->
-  <div id="configModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-xl p-6 space-y-6 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
-        <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-          <i data-lucide="settings" class="w-5 h-5 text-red-500"></i>
-          <span>URL Configuratiewijziging</span>
-        </h3>
-        <button onclick="toggleConfigModal()" class="text-zinc-400 hover:text-white">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">1. Score Per Toestel URL</label>
-          <input type="url" id="input-toestel" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">2. Sponsorpresentatie URL</label>
-          <input type="url" id="input-sponsors" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">3. Algemeen Overzicht URL</label>
-          <input type="url" id="input-algemeen" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-red-600">
-        </div>
-      </div>
-
-      <!-- JSON EXPORT / IMPORT OPTION -->
-      <div class="pt-2 border-t border-zinc-800 flex items-center justify-between text-xs">
-        <button onclick="copyJsonConfig()" class="text-zinc-400 hover:text-white flex items-center space-x-1">
-          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-          <span>Kopieer JSON Config</span>
-        </button>
-        <span class="text-zinc-500">Slaat direct op in lokaal geheugen</span>
-      </div>
-
-      <div class="flex items-center justify-end space-x-3 pt-2">
-        <button onclick="toggleConfigModal()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-semibold rounded-xl">
-          Annuleren
-        </button>
-        <button onclick="saveConfig()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl shadow-lg shadow-red-600/20">
-          Opslaan & Toepassen
-        </button>
-      </div>
+    <!-- Icon 3: Algemeen Overzicht -->
+    <div class="icon-card" onclick="openDisplay('algemeen')">
+      <svg viewBox="0 0 24 24">
+        <path d="M16 11V3H8v8H2v10h20V11h-6zm-6-6h4v14h-4V5zm-6 8h4v6H4v-6zm16 6h-4v-6h4v6z"/>
+      </svg>
+      <span>Algemeen Overzicht</span>
     </div>
   </div>
 
+  <!-- Fullscreen Container voor HDMI Weergave -->
+  <div id="display-container">
+    <button class="exit-btn" onclick="closeDisplay()">✕ Sluiten (Esc)</button>
+    <iframe id="display-frame" src=""></iframe>
+  </div>
+
   <script>
-    // DEFAULT CONFIGURATION
-    const defaultConfig = {
-      toestel: "https://gymfed.be",
-      sponsors: "https://delaware.pro",
-      algemeen: "https://wikipedia.org"
-    };
+    let urls = {};
 
-    let currentConfig = { ...defaultConfig };
-    let activeKey = null;
+    // 1. URLs inladen vanuit config.json
+    async function loadConfig() {
+      try {
+        const response = await fetch('config.json?v=' + new Date().getTime());
+        urls = await response.json();
+      } catch (e) {
+        console.error("Kon config.json niet laden, val terug op placeholders.", e);
+      }
+    }
 
-    // INITIALIZE APP
+    // 2. Schermresolutie uitlezen
+    function updateResolution() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      document.getElementById('res-display').innerText = `HDMI: ${w}x${h}`;
+    }
+
+    window.addEventListener('resize', updateResolution);
     window.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-      updateScreenMetrics();
-      loadConfigFromStorage();
-      checkUrlHash();
-
-      window.addEventListener('resize', updateScreenMetrics);
+      loadConfig();
+      updateResolution();
     });
 
-    // DISPLAY RESOLUTION & RATIO DETECTOR
-    function updateScreenMetrics() {
-      const w = window.screen.width;
-      const h = window.screen.height;
-      const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
-      const commonGcd = gcd(w, h);
+    // 3. Openen in Fullscreen
+    function openDisplay(key) {
+      const targetUrl = urls[key];
+      if (!targetUrl) {
+        alert("Geen URL ingesteld in config.json voor: " + key);
+        return;
+      }
+
+      const container = document.getElementById('display-container');
+      const frame = document.getElementById('display-frame');
       
-      document.getElementById('screenRes').textContent = `${w} x ${h} px`;
-      document.getElementById('screenRatio').textContent = `${w/commonGcd}:${h/commonGcd}`;
-    }
+      frame.src = targetUrl;
+      container.style.display = 'block';
 
-    // CONFIG MANAGEMENT
-    function loadConfigFromStorage() {
-      const stored = localStorage.getItem('ggc_display_config');
-      if (stored) {
-        try {
-          currentConfig = JSON.parse(stored);
-        } catch(e) {
-          currentConfig = { ...defaultConfig };
-        }
-      }
-      renderUrlsInUI();
-    }
-
-    function renderUrlsInUI() {
-      document.getElementById('label-url-toestel').textContent = currentConfig.toestel;
-      document.getElementById('label-url-sponsors').textContent = currentConfig.sponsors;
-      document.getElementById('label-url-algemeen').textContent = currentConfig.algemeen;
-
-      document.getElementById('input-toestel').value = currentConfig.toestel;
-      document.getElementById('input-sponsors').value = currentConfig.sponsors;
-      document.getElementById('input-algemeen').value = currentConfig.algemeen;
-    }
-
-    function saveConfig() {
-      currentConfig.toestel = document.getElementById('input-toestel').value.trim();
-      currentConfig.sponsors = document.getElementById('input-sponsors').value.trim();
-      currentConfig.algemeen = document.getElementById('input-algemeen').value.trim();
-
-      localStorage.setItem('ggc_display_config', JSON.stringify(currentConfig));
-      renderUrlsInUI();
-      toggleConfigModal();
-
-      if (activeKey) {
-        loadDisplay(activeKey);
+      // Vraag browser-fullscreen aan
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(()=>{});
       }
     }
 
-    function toggleConfigModal() {
-      const modal = document.getElementById('configModal');
-      modal.classList.toggle('hidden');
-    }
+    // 4. Sluiten / Terug naar menu
+    function closeDisplay() {
+      const container = document.getElementById('display-container');
+      const frame = document.getElementById('display-frame');
+      
+      container.style.display = 'none';
+      frame.src = '';
 
-    function copyJsonConfig() {
-      const jsonStr = JSON.stringify(currentConfig, null, 2);
-      document.execCommand('copy');
-      alert("JSON Configuratie gekopieerd naar klembord!");
-    }
-
-    // DISPLAY CONTROLLER
-    function loadDisplay(key) {
-      activeKey = key;
-      const url = currentConfig[key];
-      const iframe = document.getElementById('displayIframe');
-      const placeholder = document.getElementById('placeholder');
-      const activeName = document.getElementById('activeDisplayName');
-
-      const names = {
-        toestel: "1. Score Per Toestel",
-        sponsors: "2. Sponsorpresentatie",
-        algemeen: "3. Algemeen Overzicht"
-      };
-
-      activeName.textContent = names[key];
-      placeholder.classList.add('hidden');
-      iframe.classList.remove('hidden');
-      iframe.src = url;
-
-      // Update card borders
-      ['toestel', 'sponsors', 'algemeen'].forEach(k => {
-        const card = document.getElementById(`card-${k}`);
-        if (k === key) {
-          card.classList.add('border-red-600', 'bg-zinc-900');
-          card.classList.remove('border-zinc-800');
-        } else {
-          card.classList.remove('border-red-600', 'bg-zinc-900');
-          card.classList.add('border-zinc-800');
-        }
-      });
-    }
-
-    function openExternal(key) {
-      window.open(currentConfig[key], '_blank');
-    }
-
-    function reloadIframe() {
-      const iframe = document.getElementById('displayIframe');
-      if (iframe.src) {
-        iframe.src = iframe.src;
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(()=>{});
       }
     }
 
-    function triggerFullscreen() {
-      const iframe = document.getElementById('displayIframe');
-      if (iframe.requestFullscreen) {
-        iframe.requestFullscreen();
-      } else if (iframe.webkitRequestFullscreen) {
-        iframe.webkitRequestFullscreen();
-      }
-    }
-
-    function checkUrlHash() {
-      const hash = window.location.hash.replace('#', '');
-      if (['toestel', 'sponsors', 'algemeen'].includes(hash)) {
-        loadDisplay(hash);
-      }
-    }
+    // Esc-toets ondersteuning
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDisplay();
+    });
   </script>
 </body>
 </html>
